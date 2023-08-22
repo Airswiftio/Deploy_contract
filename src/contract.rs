@@ -1,13 +1,13 @@
 //! This contract demonstrates a sample implementation of the Soroban token
 //! interface.
 use crate::admin::{has_administrator, read_administrator, write_administrator};
-use soroban_sdk::{contract, contractimpl, Address,  Env,  Bytes, BytesN,};
+use soroban_sdk::{contract, contractimpl, symbol_short, Address,  Env,  Bytes, BytesN, String, IntoVal, Val, Vec};
 
 
 
 pub trait DeployerTrait {
     fn initialize(e: Env, admin: Address);
-    fn DeployContract(e: Env, token_wasm_hash: BytesN<32>, deployer: Address, salt: BytesN<32>)-> Address;
+    fn DeployContract(e: Env, token_wasm_hash: BytesN<32>, deployer: Address, salt: BytesN<32>, init_args: Vec<Val> )-> Address;
 
 }
 
@@ -25,7 +25,8 @@ impl DeployerTrait for Deployer {
         write_administrator(&e, &admin);
     }
 
-    fn DeployContract(e: Env, token_wasm_hash: BytesN<32>, deployer: Address, salt: BytesN<32> )-> Address {
+
+    fn DeployContract(e: Env, token_wasm_hash: BytesN<32>, deployer: Address, salt: BytesN<32>, init_args: Vec<Val>  )-> Address {
         
         let admin = read_administrator(&e);
         admin.require_auth();
@@ -34,6 +35,11 @@ impl DeployerTrait for Deployer {
         .deployer()
         .with_address(deployer, salt)
         .deploy(token_wasm_hash);
+
+        let init_fn = symbol_short!("init");
+
+
+        let res: Val = e.invoke_contract(&deployed_address, &init_fn, init_args);
         
         (deployed_address)
     }
