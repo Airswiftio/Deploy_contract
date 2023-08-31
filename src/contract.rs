@@ -7,7 +7,7 @@ use soroban_sdk::{contract, contractimpl, symbol_short, Address,  Env,  Bytes, B
 
 pub trait DeployerTrait {
     fn initialize(e: Env, admin: Address);
-    fn DeployContract(e: Env, token_wasm_hash: BytesN<32>, deployer: Address, salt: BytesN<32>, init_args: Vec<Val> )-> Address;
+    fn DeployContract(e: Env, token_wasm_hash: BytesN<32>,  salt: BytesN<32> )-> Address;
 
 }
 
@@ -26,20 +26,22 @@ impl DeployerTrait for Deployer {
     }
 
 
-    fn DeployContract(e: Env, token_wasm_hash: BytesN<32>, deployer: Address, salt: BytesN<32>, init_args: Vec<Val>  )-> Address {
+    fn DeployContract(e: Env, token_wasm_hash: BytesN<32>,  salt: BytesN<32> )-> Address {
         
-        let admin = read_administrator(&e);
-        admin.require_auth();
+        // let admin = read_administrator(&e);
+        // admin.require_auth();
+
+        log!(&env, "Hello {}", token_wasm_hash);
 
         let deployed_address = e
         .deployer()
-        .with_address(deployer, salt)
+        .with_address(e.current_contract_address(), salt)
         .deploy(token_wasm_hash);
 
-        let init_fn = symbol_short!("init");
+        // let init_fn = symbol_short!("init");
 
 
-        let res: Val = e.invoke_contract(&deployed_address, &init_fn, init_args);
+        // let res: Val = e.invoke_contract(&deployed_address, &init_fn, init_args);
         
         (deployed_address)
     }
